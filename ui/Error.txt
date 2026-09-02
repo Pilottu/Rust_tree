@@ -1,0 +1,23 @@
+   Compiling my_slint_app v0.1.0 (E:\Programm\rust_prj) 
+error: failed to run custom build command for `my_slint_app v0.1.0 (E:\Programm\rust_prj)` 
+
+Caused by:
+  process didn't exit successfully: `E:\Programm\rust_prj\target\debug\build\my_slint_app-ba2ed7d0067f4444\build-script-build` (exit code: 101)
+  --- stderr
+  error: Cannot convert (px²) to length
+     --> E:\Programm\rust_prj\ui\app.slint:124:12
+      |
+  124 | ...   x: root.menu_x * root.scale_factor * 1px + root.bg_offset_x; y: root.menu_y * root.scale_factor * 1px + root.bg_offset_y; wid...
+      |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |
+  error: Cannot convert (px²) to length
+     --> E:\Programm\rust_prj\ui\app.slint:124:73
+      |
+  124 | ...   x: root.menu_x * root.scale_factor * 1px + root.bg_offset_x; y: root.menu_y * root.scale_factor * 1px + root.bg_offset_y; wid...
+      |                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  thread 'main' (13088) panicked at build.rs:3:42:
+  called `Result::unwrap()` on an `Err` value: CompileError(["E:\\Programm\\rust_prj\\ui\\app.slint:124: Cannot convert (px²) to length", "E:\\Programm\\rust_prj\\ui\\app.slint:124: Cannot convert 
+(px²) to length"])
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+(.venv) PS E:\Programm\rust_prj>  
