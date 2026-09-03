@@ -90,12 +90,6 @@ struct CADLink {
     y2: f32,
     tree_id_1: i32,
     tree_id_2: i32,
-    #[serde(default)]
-    side1: i32,
-    #[serde(default)]
-    side2: i32,
-    #[serde(default)]
-    mid_x: f32,
 }
 struct AppState {
     trees: Vec<CADTree>,
@@ -153,6 +147,7 @@ fn check_collision(x1: f32, y1: f32, w1: f32, h1: f32, x2: f32, y2: f32, w2: f32
     let pad = 15.0_f32;
     x1 < x2 + w2 + pad && x1 + w1 + pad > x2 && y1 < y2 + h2 + pad && y1 + h1 + pad > y2
 }
+// ИСПРАВЛЕНО: Секретная величина теперь рассчитывается как 10 * на сумму ВСЕХ узлов во ВСЕХ деревьях на сцене
 fn find_closest_free_pos(
     moved_id: i32,
     mx: f32,
@@ -263,6 +258,7 @@ fn build_tree(
         }
     }
 }
+// Достаёт список связей конкретного узла (для панели "Свойства" -> вкладка "Связи узла")
 fn build_node_links(state: &AppState, tree_id: i32, node_id: i32) -> Vec<NodeLinkInfo> {
     state
         .trees
@@ -284,6 +280,12 @@ fn build_node_links(state: &AppState, tree_id: i32, node_id: i32) -> Vec<NodeLin
 
 fn update_ui_models(app: &AppWindow, state: &AppState) {
     let mut slint_trees = Vec::new();
+    // ИСПРАВЛЕНО: раньше координаты связей пересчитывались отдельным вызовом build_tree
+    // с hidden: true, а при hidden == true build_tree вообще не кладёт элементы в v_items
+    // (see "if !hidden { v_items.push(...) }"), поэтому найти узел по id было невозможно
+    // и x1/y1/x2/y2 связи оставались замороженными на момент её создания.
+    // Теперь используем уже корректно построенные (с реальной видимостью/раскрытием)
+    // t_views для КАЖДОГО дерева и переиспользуем их при пересчёте координат связей.
     let mut views_by_tree: std::collections::HashMap<i32, Vec<MyTreeItem>> =
         std::collections::HashMap::new();
 
@@ -317,59 +319,32 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
     }
     app.set_trees_list(ModelRc::from(Rc::new(VecModel::from(slint_trees))));
 
+    // Build CAD links for Slint display
     let mut updated_links = Vec::new();
     for link in &state.cad_links {
         let mut x1 = link.x1;
         let mut y1 = link.y1;
         let mut x2 = link.x2;
         let mut y2 = link.y2;
-        let mut side1 = link.side1;
-        let mut side2 = link.side2;
-        let mut mid_x = link.mid_x;
 
         if let Some(t1) = state.trees.iter().find(|t| t.id == link.tree_id_1) {
-            if let Some(t2) = state.trees.iter().find(|t| t.id == link.tree_id_2) {
-                // Пересчитываем стороны и середину
-                mid_x = (t1.cad_x + t2.cad_x) / 2.0;
-                let new_side1 = if t1.cad_x < t2.cad_x { 0 } else { 1 };
-                let new_side2 = if t2.cad_x < t1.cad_x { 0 } else { 1 };
-
-                // Если сторона изменилась, обновляем
-                side1 = new_side1;
-                side2 = new_side2;
-
-                // Получаем views для первого узла
-                if let Some(views) = views_by_tree.get(&link.tree_id_1) {
-                    if let Some(item) = views.iter().find(|i| i.id == link.id_obj1) {
-                        let node_width = item.text_width + 20.0;
-                        let x1_base = t1.cad_x + item.self_triangle_x;
-                        // Пересчитываем x1 с учётом новой стороны
-                        x1 = if side1 == 0 {
-                            x1_base + node_width // справа
-                        } else {
-                            x1_base // слева
-                        };
-                        y1 = t1.cad_y + item.self_triangle_y;
-                    }
+            if let Some(views) = views_by_tree.get(&link.tree_id_1) {
+                if let Some(item) = views.iter().find(|i| i.id == link.id_obj1) {
+                    x1 = t1.cad_x + item.self_triangle_x;
+                    y1 = t1.cad_y + item.self_triangle_y;
                 }
-
-                // Получаем views для второго узла
-                if let Some(views) = views_by_tree.get(&link.tree_id_2) {
-                    if let Some(item) = views.iter().find(|i| i.id == link.id_obj2) {
-                        let node_width = item.text_width + 20.0;
-                        let x2_base = t2.cad_x + item.self_triangle_x;
-                        // Пересчитываем x2 с учётом новой стороны
-                        x2 = if side2 == 0 {
-                            x2_base + node_width // справа
-                        } else {
-                            x2_base // слева
-                        };
-                        y2 = t2.cad_y + item.self_triangle_y;
-                    }
+            }
+        }
+        if let Some(t2) = state.trees.iter().find(|t| t.id == link.tree_id_2) {
+            if let Some(views) = views_by_tree.get(&link.tree_id_2) {
+                if let Some(item) = views.iter().find(|i| i.id == link.id_obj2) {
+                    x2 = t2.cad_x + item.self_triangle_x;
+                    y2 = t2.cad_y + item.self_triangle_y;
                 }
             }
         }
 
+        // Create CADLine for Slint
         updated_links.push(CADLine {
             id: link.id,
             id_obj1: link.id_obj1,
@@ -380,13 +355,11 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
             y2,
             tree_id_1: link.tree_id_1,
             tree_id_2: link.tree_id_2,
-            side1,
-            side2,
-            mid_x,
         });
     }
     app.set_active_cad_links(ModelRc::from(Rc::new(VecModel::from(updated_links))));
 
+    // Обновляем данные вкладки "Связи узла" для текущего выделенного узла
     let links_vec = build_node_links(state, state.active_focus_tree_id, state.selected_node_id);
     app.set_properties_links(ModelRc::from(Rc::new(VecModel::from(links_vec))));
 }
@@ -755,6 +728,7 @@ fn main() {
             let ui = a_w.unwrap();
             let mut st = _s.borrow_mut();
 
+            // Нельзя связать узел сам с собой
             if source_node_id == target_node_id && source_tree_id == target_tree_id {
                 st.linking_mode = false;
                 st.linking_source_node_id = -1;
@@ -765,58 +739,21 @@ fn main() {
                 return;
             }
 
+            // Create new CAD link
             let new_link_id = st.cad_links.iter().map(|l| l.id).max().unwrap_or(0) + 1;
-
-            // Определяем стороны на основе положения деревьев
-            let side1 = if src_tree_x < tgt_tree_x { 0 } else { 1 };
-            let side2 = if tgt_tree_x < src_tree_x { 0 } else { 1 };
-            let mid_x = (src_tree_x + tgt_tree_x) / 2.0;
-
-            // Получаем ширину узлов + 20 пикселей
-            let node1_width = st
-                .trees
-                .iter()
-                .find(|t| t.id == source_tree_id)
-                .and_then(|t| t.items.iter().find(|i| i.id == source_node_id))
-                .map(|i| i.text.chars().count() as f32 * 7.2 + 20.0 + 20.0)
-                .unwrap_or(60.0);
-
-            let node2_width = st
-                .trees
-                .iter()
-                .find(|t| t.id == target_tree_id)
-                .and_then(|t| t.items.iter().find(|i| i.id == target_node_id))
-                .map(|i| i.text.chars().count() as f32 * 7.2 + 20.0 + 20.0)
-                .unwrap_or(60.0);
-
-            // Вычисляем координаты с учетом ширины узла и стороны
-            // self_triangle_x - это левый край узла
-            let x1_final = if side1 == 0 {
-                source_x + src_tree_x + node1_width // справа от узла
-            } else {
-                source_x + src_tree_x // слева от узла
-            };
-            let x2_final = if side2 == 0 {
-                target_x + tgt_tree_x + node2_width // справа от узла
-            } else {
-                target_x + tgt_tree_x // слева от узла
-            };
-
             st.cad_links.push(CADLink {
                 id: new_link_id,
                 id_obj1: source_node_id,
                 id_obj2: target_node_id,
-                x1: x1_final,
+                x1: source_x + src_tree_x,
                 y1: source_y + src_tree_y,
-                x2: x2_final,
+                x2: target_x + tgt_tree_x,
                 y2: target_y + tgt_tree_y,
                 tree_id_1: source_tree_id,
                 tree_id_2: target_tree_id,
-                side1,
-                side2,
-                mid_x,
             });
 
+            // ИСПРАВЛЕНО: имена узлов для подписи связи берём из реального текста, а не заглушки
             let source_text = st
                 .trees
                 .iter()
@@ -832,6 +769,7 @@ fn main() {
                 .map(|i| i.text.clone())
                 .unwrap_or_default();
 
+            // Add link reference to source node
             if let Some(tree) = st.trees.iter_mut().find(|t| t.id == source_tree_id) {
                 if let Some(item) = tree.items.iter_mut().find(|i| i.id == source_node_id) {
                     item.links.push(RawLink {
@@ -841,6 +779,8 @@ fn main() {
                     });
                 }
             }
+            // ИСПРАВЛЕНО: раньше запись о связи получал только исходный узел.
+            // Целевой узел (второй участник связи) тоже должен видеть её в своих свойствах.
             if let Some(tree) = st.trees.iter_mut().find(|t| t.id == target_tree_id) {
                 if let Some(item) = tree.items.iter_mut().find(|i| i.id == target_node_id) {
                     item.links.push(RawLink {
@@ -851,6 +791,7 @@ fn main() {
                 }
             }
 
+            // Exit linking mode
             st.linking_mode = false;
             st.linking_source_node_id = -1;
             st.linking_source_tree_id = -1;

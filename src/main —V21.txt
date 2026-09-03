@@ -328,45 +328,42 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
         let mut mid_x = link.mid_x;
 
         if let Some(t1) = state.trees.iter().find(|t| t.id == link.tree_id_1) {
+            if let Some(views) = views_by_tree.get(&link.tree_id_1) {
+                if let Some(item) = views.iter().find(|i| i.id == link.id_obj1) {
+                    // Получаем ширину текста узла
+                    let node_width = item.text_width;
+                    // self_triangle_x - это левый край, поэтому:
+                    // если линия справа - добавляем ширину, если слева - оставляем как есть
+                    let x1_base = t1.cad_x + item.self_triangle_x;
+                    x1 = if side1 == 0 {
+                        x1_base + node_width // справа от узла
+                    } else {
+                        x1_base // слева от узла
+                    };
+                    y1 = t1.cad_y + item.self_triangle_y;
+                }
+            }
+        }
+        if let Some(t2) = state.trees.iter().find(|t| t.id == link.tree_id_2) {
+            if let Some(views) = views_by_tree.get(&link.tree_id_2) {
+                if let Some(item) = views.iter().find(|i| i.id == link.id_obj2) {
+                    let node_width = item.text_width;
+                    let x2_base = t2.cad_x + item.self_triangle_x;
+                    x2 = if side2 == 0 {
+                        x2_base + node_width // справа от узла
+                    } else {
+                        x2_base // слева от узла
+                    };
+                    y2 = t2.cad_y + item.self_triangle_y;
+                }
+            }
+        }
+
+        if let Some(t1) = state.trees.iter().find(|t| t.id == link.tree_id_1) {
             if let Some(t2) = state.trees.iter().find(|t| t.id == link.tree_id_2) {
-                // Пересчитываем стороны и середину
                 mid_x = (t1.cad_x + t2.cad_x) / 2.0;
-                let new_side1 = if t1.cad_x < t2.cad_x { 0 } else { 1 };
-                let new_side2 = if t2.cad_x < t1.cad_x { 0 } else { 1 };
-
-                // Если сторона изменилась, обновляем
-                side1 = new_side1;
-                side2 = new_side2;
-
-                // Получаем views для первого узла
-                if let Some(views) = views_by_tree.get(&link.tree_id_1) {
-                    if let Some(item) = views.iter().find(|i| i.id == link.id_obj1) {
-                        let node_width = item.text_width + 20.0;
-                        let x1_base = t1.cad_x + item.self_triangle_x;
-                        // Пересчитываем x1 с учётом новой стороны
-                        x1 = if side1 == 0 {
-                            x1_base + node_width // справа
-                        } else {
-                            x1_base // слева
-                        };
-                        y1 = t1.cad_y + item.self_triangle_y;
-                    }
-                }
-
-                // Получаем views для второго узла
-                if let Some(views) = views_by_tree.get(&link.tree_id_2) {
-                    if let Some(item) = views.iter().find(|i| i.id == link.id_obj2) {
-                        let node_width = item.text_width + 20.0;
-                        let x2_base = t2.cad_x + item.self_triangle_x;
-                        // Пересчитываем x2 с учётом новой стороны
-                        x2 = if side2 == 0 {
-                            x2_base + node_width // справа
-                        } else {
-                            x2_base // слева
-                        };
-                        y2 = t2.cad_y + item.self_triangle_y;
-                    }
-                }
+                side1 = if t1.cad_x < t2.cad_x { 0 } else { 1 };
+                side2 = if t2.cad_x < t1.cad_x { 0 } else { 1 };
             }
         }
 
@@ -772,24 +769,24 @@ fn main() {
             let side2 = if tgt_tree_x < src_tree_x { 0 } else { 1 };
             let mid_x = (src_tree_x + tgt_tree_x) / 2.0;
 
-            // Получаем ширину узлов + 20 пикселей
+            // Получаем ширину узлов
             let node1_width = st
                 .trees
                 .iter()
                 .find(|t| t.id == source_tree_id)
                 .and_then(|t| t.items.iter().find(|i| i.id == source_node_id))
-                .map(|i| i.text.chars().count() as f32 * 7.2 + 20.0 + 20.0)
-                .unwrap_or(60.0);
+                .map(|i| i.text.chars().count() as f32 * 7.2 + 20.0)
+                .unwrap_or(40.0);
 
             let node2_width = st
                 .trees
                 .iter()
                 .find(|t| t.id == target_tree_id)
                 .and_then(|t| t.items.iter().find(|i| i.id == target_node_id))
-                .map(|i| i.text.chars().count() as f32 * 7.2 + 20.0 + 20.0)
-                .unwrap_or(60.0);
+                .map(|i| i.text.chars().count() as f32 * 7.2 + 20.0)
+                .unwrap_or(40.0);
 
-            // Вычисляем координаты с учетом ширины узла и стороны
+            // Вычисляем координаты с учетом ширины узла
             // self_triangle_x - это левый край узла
             let x1_final = if side1 == 0 {
                 source_x + src_tree_x + node1_width // справа от узла
