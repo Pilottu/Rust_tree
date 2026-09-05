@@ -149,11 +149,9 @@ fn get_clipboard_text() -> Option<String> {
     }
     None
 }
-fn check_collision(x1: f32, _y1: f32, w1: f32, _h1: f32, x2: f32, _y2: f32, w2: f32, _h2: f32) -> bool {
+fn check_collision(x1: f32, y1: f32, w1: f32, h1: f32, x2: f32, y2: f32, w2: f32, h2: f32) -> bool {
     let pad = 15.0_f32;
-    // Запрет занимать колонку (диапазон по X), уже занятую другим деревом,
-    // независимо от того, пересекаются ли деревья по Y
-    x1 < x2 + w2 + pad && x1 + w1 + pad > x2
+    x1 < x2 + w2 + pad && x1 + w1 + pad > x2 && y1 < y2 + h2 + pad && y1 + h1 + pad > y2
 }
 fn find_closest_free_pos(
     moved_id: i32,
@@ -767,26 +765,12 @@ fn main() {
                 return;
             }
 
-            let already_linked = st
-                .trees
-                .iter()
-                .find(|t| t.id == source_tree_id)
-                .and_then(|t| t.items.iter().find(|i| i.id == source_node_id))
-                .map(|i| i.links.iter().any(|l| l.target_node_id == target_node_id))
-                .unwrap_or(false);
-
-            if already_linked {
-                // Связь между этими узлами уже существует — не создаём дубликат,
-                // но остаёмся в режиме связывания, чтобы можно было выбрать другую цель
-                update_ui_models(&ui, &st);
-                return;
-            }
-
             let new_link_id = st.cad_links.iter().map(|l| l.id).max().unwrap_or(0) + 1;
 
             // Определяем стороны на основе положения деревьев
             let side1 = if src_tree_x < tgt_tree_x { 0 } else { 1 };
             let side2 = if tgt_tree_x < src_tree_x { 0 } else { 1 };
+            let mid_x = (src_tree_x + tgt_tree_x) / 2.0;
 
             // Получаем ширину узлов + 20 пикселей
             let node1_width = st
@@ -817,10 +801,6 @@ fn main() {
             } else {
                 target_x + tgt_tree_x // слева от узла
             };
-
-            // Вертикальная линия связи проходит ровно посередине между
-            // конечными точками левой и правой горизонтальных линий
-            let mid_x = (x1_final + x2_final) / 2.0;
 
             st.cad_links.push(CADLink {
                 id: new_link_id,

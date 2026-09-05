@@ -45,14 +45,6 @@ export component AppWindow inherits Window {
     in_out property <float> linking_source_y: 0.0;
     in_out property <float> linking_source_tree_x: 0.0;
     in_out property <float> linking_source_tree_y: 0.0;
-    in_out property <int> linking_target_node_id: -1;
-    in_out property <int> linking_target_tree_id: -1;
-    in_out property <float> linking_target_x: 0.0;
-    in_out property <float> linking_target_y: 0.0;
-    in_out property <float> linking_target_tree_x: 0.0;
-    in_out property <float> linking_target_tree_y: 0.0;
-    in_out property <bool> link_confirm_visible: false;
-    in_out property <int> selected_link_id: -1;
 
     callback toggle_expand(int, int);
     callback finish_rename(int, string, int);
@@ -83,35 +75,16 @@ export component AppWindow inherits Window {
     background: #121215;
     title: "Менеджер команд голосового управления (CAD Среда)";
 
-    global_keys := FocusScope {
-        x: 0px;
-        y: 0px;
-        width: 0px;
-        height: 0px;
-        key-pressed(event) => {
-            if (event.text == Key.Escape) {
-                root.key_esc_pressed();
-                return accept;
-            }
-            return reject;
-        }
-        init => { self.focus(); }
-    }
-
     TouchArea {
         width: 100%;
         height: 100%;
-        clicked => { root.menu_visible = false; root.selected_link_id = -1; global_keys.focus(); }
+        clicked => { root.menu_visible = false; }
         scroll-event(evt) => {
             if (!root.is_dragging_middle && root.active_dragging_tree_id == -1) {
-                let old_scale = root.scale_factor;
-                let new_scale = evt.delta-y > 0 ? Math.max(0.4, old_scale - 0.05) : Math.min(2.5, old_scale + 0.05);
-                if (new_scale != old_scale) {
-                    let cad_mouse_x = (self.mouse-x - root.bg_offset_x) / (1px * old_scale);
-                    let cad_mouse_y = (self.mouse-y - root.bg_offset_y) / (1px * old_scale);
-                    root.scale_factor = new_scale;
-                    root.bg_offset_x = self.mouse-x - cad_mouse_x * new_scale * 1px;
-                    root.bg_offset_y = self.mouse-y - cad_mouse_y * new_scale * 1px;
+                if (evt.delta-y > 0) {
+                    root.scale_factor = Math.max(0.4, root.scale_factor - 0.05);
+                } else {
+                    root.scale_factor = Math.min(2.5, root.scale_factor + 0.05);
                 }
                 root.trees_geometry_changed();
             }
@@ -171,20 +144,16 @@ export component AppWindow inherits Window {
             width: 100%;
             height: 100%;
             clicked => {
-                let target_screen_x = root.width / 2;
-                let target_screen_y = 15px + 35px + 15px;
-                let target_cad_x = (target_screen_x - root.bg_offset_x) / (1px * root.scale_factor);
-                let target_cad_y = (target_screen_y - root.bg_offset_y) / (1px * root.scale_factor);
-                root.add_main_tree(target_cad_x, target_cad_y);
+                root.add_main_tree(root.width / 1px, root.height / 1px);
             }
         }
     }
 
     if (root.is_linking_mode) : Rectangle {
-        x: 15px;
+        x: (root.width - 450px) / 2;
         y: 15px;
-        width: 320px;
-        height: 50px;
+        width: 450px;
+        height: 35px;
         background: #ffaa0020;
         border-width: 1px;
         border-color: #ffaa00;
@@ -196,10 +165,6 @@ export component AppWindow inherits Window {
             horizontal-alignment: center;
             vertical-alignment: center;
             font-weight: 700;
-            font-size: 12px;
-            wrap: word-wrap;
-            width: parent.width - 12px;
-            x: 6px;
         }
     }
 
@@ -219,47 +184,35 @@ export component AppWindow inherits Window {
             property <float> x2_scaled: line.x2 * root.scale_factor;
             property <float> y2_scaled: line.y2 * root.scale_factor;
             property <float> mid_x_scaled: line.mid_x * root.scale_factor;
-            property <bool> is_selected: root.selected_link_id == line.id;
-            property <length> line_thickness: (is_selected ? 2px : 1px) * root.scale_factor;
-            property <color> line_color: is_selected ? #ffcc00 : #ffcc0060;
             
             // Горизонтальная линия от первого узла до середины
             Rectangle {
                 x: Math.min(x1_scaled, mid_x_scaled) * 1px;
-                y: y1_scaled * 1px - line_thickness / 2.0;
+                y: y1_scaled * 1px - 1px * root.scale_factor / 2.0;
                 width: Math.abs(mid_x_scaled - x1_scaled) * 1px;
-                height: line_thickness;
-                background: line_color;
-                border-radius: line_thickness / 2.0;
-                TouchArea {
-                    clicked => { root.selected_link_id = line.id; }
-                }
+                height: 2px * root.scale_factor;
+                background: #ffcc00;
+                border-radius: 1px * root.scale_factor;
             }
             
             // Вертикальная линия по середине между деревьями
             Rectangle {
-                x: mid_x_scaled * 1px - line_thickness / 2.0;
+                x: mid_x_scaled * 1px - 1px * root.scale_factor / 2.0;
                 y: Math.min(y1_scaled, y2_scaled) * 1px;
-                width: line_thickness;
+                width: 2px * root.scale_factor;
                 height: Math.abs(y2_scaled - y1_scaled) * 1px;
-                background: line_color;
-                border-radius: line_thickness / 2.0;
-                TouchArea {
-                    clicked => { root.selected_link_id = line.id; }
-                }
+                background: #ffcc00;
+                border-radius: 1px * root.scale_factor;
             }
             
             // Горизонтальная линия от середины до второго узла
             Rectangle {
                 x: Math.min(mid_x_scaled, x2_scaled) * 1px;
-                y: y2_scaled * 1px - line_thickness / 2.0;
+                y: y2_scaled * 1px - 1px * root.scale_factor / 2.0;
                 width: Math.abs(x2_scaled - mid_x_scaled) * 1px;
-                height: line_thickness;
-                background: line_color;
-                border-radius: line_thickness / 2.0;
-                TouchArea {
-                    clicked => { root.selected_link_id = line.id; }
-                }
+                height: 2px * root.scale_factor;
+                background: #ffcc00;
+                border-radius: 1px * root.scale_factor;
             }
         }
 
@@ -341,18 +294,16 @@ export component AppWindow inherits Window {
                 }
             }
 
-            Rectangle {
+            ListView {
                 x: 8px * root.scale_factor;
                 y: 8px * root.scale_factor;
                 width: parent.width - 16px * root.scale_factor;
                 height: parent.height - 16px * root.scale_factor;
 
                 for item[item-index] in tree.data : Rectangle {
-                    y: item-index * 32px * root.scale_factor;
                     height: 32px * root.scale_factor;
                     width: parent.width;
                     f1 := FocusScope {}
-                    property <bool> is_link_endpoint: root.is_linking_mode && (((item.id == root.linking_source_node_id) && (tree.id == root.linking_source_tree_id)) || (root.link_confirm_visible && (item.id == root.linking_target_node_id) && (tree.id == root.linking_target_tree_id)));
 
                     // Треугольник для сворачивания/разворачивания
                     if (item.has_children) : TouchArea {
@@ -380,18 +331,7 @@ export component AppWindow inherits Window {
                         clicked => { 
                             root.menu_visible = false; 
                             if (root.is_linking_mode) {
-                                if (item.id == root.linking_source_node_id && tree.id == root.linking_source_tree_id) {
-                                    root.link_confirm_visible = false;
-                                    root.finish_cad_link(root.linking_source_node_id, root.linking_source_tree_id, item.id, tree.id, root.linking_source_x, root.linking_source_y, item.self_triangle_x, item.self_triangle_y, root.linking_source_tree_x, root.linking_source_tree_y, tree.cad_x, tree.cad_y);
-                                } else {
-                                    root.linking_target_node_id = item.id;
-                                    root.linking_target_tree_id = tree.id;
-                                    root.linking_target_x = item.self_triangle_x;
-                                    root.linking_target_y = item.self_triangle_y;
-                                    root.linking_target_tree_x = tree.cad_x;
-                                    root.linking_target_tree_y = tree.cad_y;
-                                    root.link_confirm_visible = true;
-                                }
+                                root.finish_cad_link(root.linking_source_node_id, root.linking_source_tree_id, item.id, tree.id, root.linking_source_x, root.linking_source_y, item.self_triangle_x, item.self_triangle_y, root.linking_source_tree_x, root.linking_source_tree_y, tree.cad_x, tree.cad_y);
                             } else {
                                 if (animation-tick() - root.last_click_time < 350ms && root.last_clicked_item_id == item.id) {
                                     root.item_double_clicked(item.id, tree.id);
@@ -432,9 +372,9 @@ export component AppWindow inherits Window {
                     row_bg1 := Rectangle {
                         x: (10px + item.depth * 24px + 20px) * root.scale_factor;
                         border-width: item.is_selected ? 2px * root.scale_factor : 1px * root.scale_factor;
-                        border-color: is_link_endpoint ? (root.link_mode_blink_opacity > 0.5 ? #00ff00 : #ffffff) : (item.is_selected ? #ffd700 : #ffffff25);
+                        border-color: (root.is_linking_mode && item.id == root.linking_source_node_id) ? (root.link_mode_blink_opacity > 0.5 ? #00ff00 : #ffffff) : (item.is_selected ? #ffd700 : #ffffff25);
                         border-radius: 12px * root.scale_factor;
-                        background: is_link_endpoint ? (root.link_mode_blink_opacity > 0.5 ? #00ff0015 : #ffffff05) : (item.is_selected ? #ffd70015 : #ffffff05);
+                        background: (root.is_linking_mode && item.id == root.linking_source_node_id) ? (root.link_mode_blink_opacity > 0.5 ? #00ff0015 : #ffffff05) : (item.is_selected ? #ffd70015 : #ffffff05);
                         height: 24px * root.scale_factor;
                         y: 4px * root.scale_factor;
                         width: item.is_editing ? 160px * root.scale_factor : (t_box1.preferred-width + 20px * root.scale_factor);
@@ -521,11 +461,7 @@ export component AppWindow inherits Window {
                 height: 28px;
                 clicked => {
                     root.menu_visible = false;
-                    root.link_confirm_visible = false;
-                    root.linking_target_node_id = -1;
-                    root.linking_target_tree_id = -1;
                     root.add_cad_link_mode(root.menu_target_id, root.menu_source_tree, root.active_self_x, root.active_self_y, root.active_tree_cad_x, root.active_tree_cad_y);
-                    global_keys.focus();
                 }
                 Text {
                     text: " Добавить связь...";
@@ -704,71 +640,6 @@ export component AppWindow inherits Window {
                         text: "Закрыть";
                         clicked => {
                             root.properties_visible = false;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (root.is_linking_mode && root.link_confirm_visible) : Rectangle {
-        width: 100%;
-        height: 100%;
-        background: #000000a0;
-        z: 1400;
-        confirm_focus := FocusScope {
-            x: 0px;
-            y: 0px;
-            width: 0px;
-            height: 0px;
-            key-pressed(event) => {
-                if (event.text == Key.Return) {
-                    root.finish_cad_link(root.linking_source_node_id, root.linking_source_tree_id, root.linking_target_node_id, root.linking_target_tree_id, root.linking_source_x, root.linking_source_y, root.linking_target_x, root.linking_target_y, root.linking_source_tree_x, root.linking_source_tree_y, root.linking_target_tree_x, root.linking_target_tree_y);
-                    root.link_confirm_visible = false;
-                    global_keys.focus();
-                    return accept;
-                }
-                return reject;
-            }
-            init => { self.focus(); }
-        }
-        Rectangle {
-            x: (parent.width - self.width) / 2;
-            y: (parent.height - self.height) / 2;
-            width: 320px;
-            height: 150px;
-            background: #1e1e24;
-            border-radius: 8px;
-            border-width: 1px;
-            border-color: #ffaa00;
-            VerticalLayout {
-                padding: 20px;
-                spacing: 15px;
-                Text {
-                    text: "Подтвердить создание связи?";
-                    color: #ffaa00;
-                    font-weight: 700;
-                    horizontal-alignment: center;
-                    wrap: word-wrap;
-                }
-                HorizontalLayout {
-                    spacing: 10px;
-                    alignment: center;
-                    Button {
-                        text: "OK (Enter)";
-                        clicked => {
-                            root.finish_cad_link(root.linking_source_node_id, root.linking_source_tree_id, root.linking_target_node_id, root.linking_target_tree_id, root.linking_source_x, root.linking_source_y, root.linking_target_x, root.linking_target_y, root.linking_source_tree_x, root.linking_source_tree_y, root.linking_target_tree_x, root.linking_target_tree_y);
-                            root.link_confirm_visible = false;
-                            global_keys.focus();
-                        }
-                    }
-                    Button {
-                        text: "Отмена";
-                        clicked => {
-                            root.link_confirm_visible = false;
-                            root.linking_target_node_id = -1;
-                            root.linking_target_tree_id = -1;
-                            global_keys.focus();
                         }
                     }
                 }
