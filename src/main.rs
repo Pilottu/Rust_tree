@@ -331,8 +331,7 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
 
         if let Some(t1) = state.trees.iter().find(|t| t.id == link.tree_id_1) {
             if let Some(t2) = state.trees.iter().find(|t| t.id == link.tree_id_2) {
-                // Пересчитываем стороны и середину
-                mid_x = (t1.cad_x + t2.cad_x) / 2.0;
+                // Пересчитываем стороны
                 let new_side1 = if t1.cad_x < t2.cad_x { 0 } else { 1 };
                 let new_side2 = if t2.cad_x < t1.cad_x { 0 } else { 1 };
 
@@ -369,6 +368,10 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
                         y2 = t2.cad_y + item.self_triangle_y;
                     }
                 }
+
+                // Середина вертикального сегмента — ровно между
+                // финальными (уже пересчитанными) x1 и x2
+                mid_x = (x1 + x2) / 2.0;
             }
         }
 
