@@ -1,8 +1,7 @@
 #![windows_subsystem = "windows"]
-use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
 use slint::{ComponentHandle, ModelRc, VecModel, Weak};
-use std::{cell::RefCell, collections::HashMap, rc::Rc, thread, time::Duration};
+use std::{cell::RefCell, rc::Rc, thread, time::Duration};
 slint::include_modules!();
 #[link(name = "user32")]
 extern "system" {
@@ -58,7 +57,7 @@ struct RawItem {
     parent_id: i32,
     is_expanded: bool,
     is_editing: bool,
-    notes: Vec<String>,
+    note: String,
     links: Vec<RawLink>,
 }
 #[derive(Serialize, Deserialize)]
@@ -108,57 +107,6 @@ struct AppState {
     linking_source_node_id: i32,
     linking_source_tree_id: i32,
 }
-
-#[derive(Serialize, Deserialize)]
-struct PersistedAppState {
-    trees: Vec<CADTree>,
-    cad_links: Vec<CADLink>,
-    selected_node_id: i32,
-    active_focus_tree_id: i32,
-}
-
-fn load_persisted_state() -> Option<PersistedAppState> {
-    let connection = Connection::open("cad_state.db").ok()?;
-    connection
-        .execute(
-            "CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY CHECK (id = 1), payload TEXT NOT NULL)",
-            [],
-        )
-        .ok()?;
-    let payload: String = connection
-        .query_row("SELECT payload FROM app_state WHERE id = 1", [], |row| {
-            row.get(0)
-        })
-        .ok()?;
-    serde_json::from_str(&payload).ok()
-}
-
-fn save_persisted_state(state: &AppState) {
-    let persisted = PersistedAppState {
-        trees: state.trees.clone(),
-        cad_links: state.cad_links.clone(),
-        selected_node_id: state.selected_node_id,
-        active_focus_tree_id: state.active_focus_tree_id,
-    };
-    let Ok(payload) = serde_json::to_string(&persisted) else {
-        return;
-    };
-    let Ok(connection) = Connection::open("cad_state.db") else {
-        return;
-    };
-    if connection
-        .execute(
-            "CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY CHECK (id = 1), payload TEXT NOT NULL)",
-            [],
-        )
-        .is_ok()
-    {
-        let _ = connection.execute(
-            "INSERT INTO app_state (id, payload) VALUES (1, ?1) ON CONFLICT(id) DO UPDATE SET payload = excluded.payload",
-            params![payload],
-        );
-    }
-}
 fn set_clipboard_text(text: &str) {
     unsafe {
         if OpenClipboard(std::ptr::null_mut()) != 0 {
@@ -201,17 +149,10 @@ fn get_clipboard_text() -> Option<String> {
     }
     None
 }
-fn check_collision(
-    x1: f32,
-    _y1: f32,
-    w1: f32,
-    _h1: f32,
-    x2: f32,
-    _y2: f32,
-    w2: f32,
-    _h2: f32,
-) -> bool {
+fn check_collision(x1: f32, _y1: f32, w1: f32, _h1: f32, x2: f32, _y2: f32, w2: f32, _h2: f32) -> bool {
     let pad = 15.0_f32;
+    // Запрет занимать колонку (диапазон по X), уже занятую другим деревом,
+    // независимо от того, пересекаются ли деревья по Y
     x1 < x2 + w2 + pad && x1 + w1 + pad > x2
 }
 fn find_closest_free_pos(
@@ -267,8 +208,8 @@ fn build_tree(
             *global_index += 1;
         }
         let current_node_coord = Point2D {
-            x: 18.0 + 10.0 + (depth as f32 * 24.0) + 10.0,
-            y: 13.0 + (current_row_idx as f32 * 32.0) + 16.0,
+            x: 8.0 + 10.0 + (depth as f32 * 24.0) + 10.0,
+            y: 8.0 + (current_row_idx as f32 * 32.0) + 16.0,
         };
         if !hidden {
             let computed_w = (item.text.chars().count() as f32 * 7.2) + 20.0;
@@ -286,7 +227,6 @@ fn build_tree(
                     slint_mask[i] = if !parent_lasts[i] { 1 } else { 0 };
                 }
             }
-            let notes_str = item.notes.join(", ");
             v_items.push(MyTreeItem {
                 id: item.id,
                 text: item.text.clone().into(),
@@ -297,7 +237,7 @@ fn build_tree(
                 is_expanded: item.is_expanded,
                 parent_is_last: depth > 1 && parent_lasts[(depth - 2) as usize],
                 is_selected: item.id == sel_id,
-                note: notes_str.into(),
+                note: item.note.clone().into(),
                 text_width: computed_w,
                 smart_id: smart_id.into(),
                 line_mask: ModelRc::from(Rc::new(VecModel::from(slint_mask.to_vec()))),
@@ -344,28 +284,10 @@ fn build_node_links(state: &AppState, tree_id: i32, node_id: i32) -> Vec<NodeLin
         .unwrap_or_default()
 }
 
-fn build_node_notes(state: &AppState, tree_id: i32, node_id: i32) -> Vec<NodeNoteInfo> {
-    let mut result = Vec::new();
-    if let Some(tree) = state.trees.iter().find(|t| t.id == tree_id) {
-        if let Some(item) = tree.items.iter().find(|i| i.id == node_id) {
-            let node_name = item.text.clone();
-            for (idx, note) in item.notes.iter().enumerate() {
-                result.push(NodeNoteInfo {
-                    node_id: item.id,
-                    node_name: node_name.clone().into(),
-                    note_index: idx as i32,
-                    note_text: note.clone().into(),
-                });
-            }
-        }
-    }
-    result
-}
-
 fn update_ui_models(app: &AppWindow, state: &AppState) {
-    save_persisted_state(state);
     let mut slint_trees = Vec::new();
-    let mut views_by_tree: HashMap<i32, Vec<MyTreeItem>> = HashMap::new();
+    let mut views_by_tree: std::collections::HashMap<i32, Vec<MyTreeItem>> =
+        std::collections::HashMap::new();
 
     for t in &state.trees {
         let mut t_views = Vec::new();
@@ -378,12 +300,12 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
             false,
             vec![],
             state.selected_node_id,
-            Point2D { x: 30.0, y: 29.0 },
+            Point2D { x: 20.0, y: 24.0 },
             &mut g_idx,
         );
-        let mut max_w = 260.0_f32;
+        let mut max_w = 250.0_f32;
         for item in &t_views {
-            max_w = max_w.max(10.0 + (item.depth as f32 * 24.0) + 20.0 + item.text_width + 50.0);
+            max_w = max_w.max(10.0 + (item.depth as f32 * 24.0) + 20.0 + item.text_width + 40.0);
         }
         slint_trees.push(SlintCADTree {
             id: t.id,
@@ -409,38 +331,46 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
 
         if let Some(t1) = state.trees.iter().find(|t| t.id == link.tree_id_1) {
             if let Some(t2) = state.trees.iter().find(|t| t.id == link.tree_id_2) {
+                // Пересчитываем стороны
                 let new_side1 = if t1.cad_x < t2.cad_x { 0 } else { 1 };
                 let new_side2 = if t2.cad_x < t1.cad_x { 0 } else { 1 };
 
+                // Если сторона изменилась, обновляем
                 side1 = new_side1;
                 side2 = new_side2;
 
+                // Получаем views для первого узла
                 if let Some(views) = views_by_tree.get(&link.tree_id_1) {
                     if let Some(item) = views.iter().find(|i| i.id == link.id_obj1) {
                         let node_width = item.text_width + 20.0;
-                        let x1_base = t1.cad_x + item.self_triangle_x + 12.0;
+                        let x1_base = t1.cad_x + item.self_triangle_x;
+                        // Пересчитываем x1 с учётом новой стороны
                         x1 = if side1 == 0 {
-                            x1_base + node_width
+                            x1_base + node_width // справа
                         } else {
-                            x1_base
+                            x1_base // слева
                         };
-                        y1 = t1.cad_y + item.self_triangle_y + 10.0;
+                        y1 = t1.cad_y + item.self_triangle_y;
                     }
                 }
 
+                // Получаем views для второго узла
                 if let Some(views) = views_by_tree.get(&link.tree_id_2) {
                     if let Some(item) = views.iter().find(|i| i.id == link.id_obj2) {
                         let node_width = item.text_width + 20.0;
-                        let x2_base = t2.cad_x + item.self_triangle_x + 14.0;
+                        let x2_base = t2.cad_x + item.self_triangle_x;
+                        // Пересчитываем x2 с учётом новой стороны
                         x2 = if side2 == 0 {
-                            x2_base + node_width
+                            x2_base + node_width // справа
                         } else {
-                            x2_base
+                            x2_base // слева
                         };
-                        y2 = t2.cad_y + item.self_triangle_y + 10.0;
+                        y2 = t2.cad_y + item.self_triangle_y;
                     }
                 }
 
+                // Середина вертикального сегмента — ровно между
+                // финальными (уже пересчитанными) x1 и x2
                 mid_x = (x1 + x2) / 2.0;
             }
         }
@@ -464,12 +394,6 @@ fn update_ui_models(app: &AppWindow, state: &AppState) {
 
     let links_vec = build_node_links(state, state.active_focus_tree_id, state.selected_node_id);
     app.set_properties_links(ModelRc::from(Rc::new(VecModel::from(links_vec))));
-
-    let notes_vec = build_node_notes(state, state.active_focus_tree_id, state.selected_node_id);
-    app.set_properties_notes(ModelRc::from(Rc::new(VecModel::from(notes_vec))));
-
-    app.set_selected_node_id(state.selected_node_id);
-    app.set_selected_tree_id(state.active_focus_tree_id);
 }
 fn pack_branch(pid: i32, vec: &Vec<RawItem>) -> Vec<ClipboardBranch> {
     vec.iter()
@@ -494,7 +418,7 @@ fn unpack_branch(branch: ClipboardBranch, new_parent_id: i32, vec: &mut Vec<RawI
 fn main() {
     let app = AppWindow::new().unwrap();
     let app_weak = app.as_weak();
-    let default_state = AppState {
+    let state = Rc::new(RefCell::new(AppState {
         trees: vec![CADTree {
             id: 1,
             cad_x: 40.0,
@@ -507,7 +431,7 @@ fn main() {
                 parent_id: 0,
                 is_expanded: true,
                 is_editing: false,
-                notes: vec!["Главный server управления".to_string()],
+                note: "Главный server управления".into(),
                 links: vec![],
             }],
         }],
@@ -518,24 +442,10 @@ fn main() {
         linking_mode: false,
         linking_source_node_id: -1,
         linking_source_tree_id: -1,
-    };
-    let state = Rc::new(RefCell::new(
-        load_persisted_state()
-            .map(|saved| AppState {
-                trees: saved.trees,
-                cad_links: saved.cad_links,
-                selected_node_id: saved.selected_node_id,
-                active_focus_tree_id: saved.active_focus_tree_id,
-                history: Vec::new(),
-                linking_mode: false,
-                linking_source_node_id: -1,
-                linking_source_tree_id: -1,
-            })
-            .unwrap_or(default_state),
-    ));
+    }));
     update_ui_models(&app, &state.borrow());
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_toggle_expand(move |node_id, tree_id| {
         let mut st = _s.borrow_mut();
         if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
@@ -543,27 +453,27 @@ fn main() {
                 i.is_expanded = !i.is_expanded;
             }
         }
-        update_ui_models(&_a_w.unwrap(), &st);
+        update_ui_models(&a_w.unwrap(), &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_trees_geometry_changed(move || {
-        update_ui_models(&_a_w.unwrap(), &_s.borrow());
+        update_ui_models(&a_w.unwrap(), &_s.borrow());
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_update_tree_position(move |tree_id, nx, ny| {
         let mut st = _s.borrow_mut();
         if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
             t.cad_x = nx;
             t.cad_y = ny;
         }
-        update_ui_models(&_a_w.unwrap(), &st);
+        update_ui_models(&a_w.unwrap(), &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_resolve_tree_collision(move |tree_id| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
         let (mut cur_x, mut cur_y, mut mw, mut mh) = (0.0, 0.0, 250.0, 48.0);
         if let Some(t) = st.trees.iter().find(|t| t.id == tree_id) {
@@ -580,9 +490,9 @@ fn main() {
         update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_add_main_tree(move |target_center_x, target_center_y| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
         let n_id = st.trees.iter().map(|t| t.id).max().unwrap_or(0) + 1;
         let target_x = target_center_x - 125.0;
@@ -600,32 +510,28 @@ fn main() {
                 parent_id: 0,
                 is_expanded: true,
                 is_editing: false,
-                notes: vec![],
+                note: "".into(),
                 links: vec![],
             }],
         });
         update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_hover_item(move |node_id, idx, tree_id| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let st = _s.borrow();
         if node_id != -1 {
             if let Some(t) = st.trees.iter().find(|t| t.id == tree_id) {
-                if let Some(item) = t.items.iter().find(|i| i.id == node_id) {
-                    let mut notes = Vec::new();
-                    for note in &item.notes {
-                        if !note.is_empty() {
-                            notes.push(note.clone());
-                        }
-                    }
-                    let tooltip = if notes.is_empty() {
-                        "Примечание отсутствует.".to_string()
-                    } else {
-                        notes.join(", ")
-                    };
-                    ui.set_tooltip_text(tooltip.into());
+                if let Some(i) = t.items.iter().find(|i| i.id == node_id) {
+                    ui.set_tooltip_text(
+                        (if i.note.is_empty() {
+                            "Примечание отсутствует."
+                        } else {
+                            &i.note
+                        })
+                        .into(),
+                    );
                     ui.set_tooltip_index(idx);
                 }
             }
@@ -633,104 +539,33 @@ fn main() {
             ui.set_tooltip_index(-1);
         }
     });
-    let _a_w = app_weak.clone();
-    app.on_show_tree_menu(move |node_id, tree_id, screen_x, screen_y| {
-        let ui = _a_w.unwrap();
-        ui.set_menu_target_id(node_id);
-        ui.set_menu_source_tree(tree_id);
-        ui.set_menu_x(screen_x);
-        ui.set_menu_y(screen_y);
-        ui.set_link_menu_visible(false);
-        ui.set_menu_visible(true);
-    });
-    let _a_w = app_weak.clone();
-    app.on_select_link_target(move |node_id, tree_id, node_x, node_y, tree_x, tree_y| {
-        let ui = _a_w.unwrap();
-        ui.set_linking_target_node_id(node_id);
-        ui.set_linking_target_tree_id(tree_id);
-        ui.set_linking_target_x(node_x);
-        ui.set_linking_target_y(node_y);
-        ui.set_linking_target_tree_x(tree_x);
-        ui.set_linking_target_tree_y(tree_y);
-        ui.set_link_confirm_visible(true);
-    });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_select_item(move |node_id, _txt, tree_id| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
         st.active_focus_tree_id = tree_id;
         st.selected_node_id = node_id;
-
         if let Some(t) = st.trees.iter().find(|t| t.id == tree_id) {
-            if let Some(_i) = t.items.iter().find(|i| i.id == node_id) {
-                ui.set_properties_text("".into());
-                ui.set_selected_property_link_index(-1);
-                ui.set_selected_property_note_index(-1);
-                ui.set_note_editing(false);
+            if let Some(i) = t.items.iter().find(|i| i.id == node_id) {
+                ui.set_properties_text(i.note.clone().into());
             }
         }
         update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_select_note_from_properties(move |note_index| {
-        let ui = _a_w.unwrap();
-        let st = _s.borrow();
-        let tree_id = st.active_focus_tree_id;
-        let node_id = st.selected_node_id;
-        if let Some(t) = st.trees.iter().find(|t| t.id == tree_id) {
-            if let Some(i) = t.items.iter().find(|i| i.id == node_id) {
-                if note_index >= 0 && (note_index as usize) < i.notes.len() {
-                    ui.set_properties_text(i.notes[note_index as usize].clone().into());
-                    ui.set_note_editing(false);
-                }
-            }
-        }
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_note_double_clicked(move |note_index| {
-        let ui = _a_w.unwrap();
-        let st = _s.borrow();
-        let tree_id = st.active_focus_tree_id;
-        let node_id = st.selected_node_id;
-        if let Some(t) = st.trees.iter().find(|t| t.id == tree_id) {
-            if let Some(i) = t.items.iter().find(|i| i.id == node_id) {
-                if note_index >= 0 && (note_index as usize) < i.notes.len() {
-                    ui.set_selected_property_note_index(note_index);
-                    ui.set_note_editing(true);
-                }
-            }
-        }
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_note_edit_finished(move |note_index, new_text| {
-        let ui = _a_w.unwrap();
+    app.on_change_note(move |node_id, note, tree_id| {
         let mut st = _s.borrow_mut();
-        let tree_id = st.active_focus_tree_id;
-        let node_id = st.selected_node_id;
-
-        if let Some(tree) = st.trees.iter_mut().find(|t| t.id == tree_id) {
-            if let Some(item) = tree.items.iter_mut().find(|i| i.id == node_id) {
-                if note_index >= 0 && (note_index as usize) < item.notes.len() {
-                    let trimmed = new_text.trim();
-                    if !trimmed.is_empty() {
-                        item.notes[note_index as usize] = trimmed.to_string();
-                    }
-                }
+        if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
+            if let Some(i) = t.items.iter_mut().find(|i| i.id == node_id) {
+                i.note = note.to_string();
             }
         }
-
-        ui.set_note_editing(false);
-        ui.set_selected_property_note_index(-1);
-        update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_item_double_clicked(move |node_id, tree_id| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
         if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
             for i in t.items.iter_mut() {
@@ -740,9 +575,9 @@ fn main() {
         update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_finish_rename(move |node_id, txt, tree_id| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
         if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
             if let Some(i) = t.items.iter_mut().find(|i| i.id == node_id) {
@@ -753,22 +588,9 @@ fn main() {
         update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    app.on_change_note(move |node_id, note, tree_id| {
-        let mut st = _s.borrow_mut();
-        if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
-            if let Some(i) = t.items.iter_mut().find(|i| i.id == node_id) {
-                if i.notes.is_empty() {
-                    i.notes.push(note.to_string());
-                } else {
-                    i.notes[0] = note.to_string();
-                }
-            }
-        }
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_menu_action(move |act, n_id, tree_id| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
         let max_node_id = st
             .trees
@@ -789,7 +611,7 @@ fn main() {
                         parent_id: n_id,
                         is_expanded: true,
                         is_editing: true,
-                        notes: vec![],
+                        note: "".into(),
                         links: vec![],
                     });
                     st.selected_node_id = max_node_id;
@@ -816,18 +638,9 @@ fn main() {
                     }
                 }
                 "properties" => {
-                    if let Some(_i) = t.items.iter().find(|i| i.id == n_id) {
-                        ui.set_properties_text("".into());
+                    if let Some(i) = t.items.iter().find(|i| i.id == n_id) {
+                        ui.set_properties_text(i.note.clone().into());
                         ui.set_properties_visible(true);
-                        ui.set_selected_property_link_index(-1);
-                        ui.set_selected_property_note_index(-1);
-                        ui.set_selected_node_id(n_id);
-                        ui.set_selected_tree_id(tree_id);
-                        ui.set_note_editing(false);
-                        let links = build_node_links(&st, tree_id, n_id);
-                        let notes = build_node_notes(&st, tree_id, n_id);
-                        ui.set_properties_links(ModelRc::from(Rc::new(VecModel::from(links))));
-                        ui.set_properties_notes(ModelRc::from(Rc::new(VecModel::from(notes))));
                     }
                 }
                 _ => {}
@@ -836,7 +649,7 @@ fn main() {
         update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_undo_action(move || {
         let mut st = _s.borrow_mut();
         if st.active_focus_tree_id == 1 {
@@ -844,7 +657,7 @@ fn main() {
                 st.trees = p;
             }
         }
-        update_ui_models(&_a_w.unwrap(), &st);
+        update_ui_models(&a_w.unwrap(), &st);
     });
     let _s = state.clone();
     app.on_copy_action(move || {
@@ -868,7 +681,7 @@ fn main() {
         }
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_paste_action(move || {
         if let Some(txt) = get_clipboard_text() {
             let (tree_id, sel, is_edit, old) = {
@@ -904,14 +717,14 @@ fn main() {
                     }
                 }
             }
-            update_ui_models(&_a_w.unwrap(), &st);
+            update_ui_models(&a_w.unwrap(), &st);
         }
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_add_cad_link_mode(
         move |node_id, tree_id, source_x, source_y, tree_x, tree_y| {
-            let ui = _a_w.unwrap();
+            let ui = a_w.unwrap();
             let mut st = _s.borrow_mut();
 
             st.linking_mode = true;
@@ -930,7 +743,7 @@ fn main() {
         },
     );
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_finish_cad_link(
         move |source_node_id,
               source_tree_id,
@@ -944,7 +757,7 @@ fn main() {
               src_tree_y,
               tgt_tree_x,
               tgt_tree_y| {
-            let ui = _a_w.unwrap();
+            let ui = a_w.unwrap();
             let mut st = _s.borrow_mut();
 
             if source_node_id == target_node_id && source_tree_id == target_tree_id {
@@ -966,15 +779,19 @@ fn main() {
                 .unwrap_or(false);
 
             if already_linked {
+                // Связь между этими узлами уже существует — не создаём дубликат,
+                // но остаёмся в режиме связывания, чтобы можно было выбрать другую цель
                 update_ui_models(&ui, &st);
                 return;
             }
 
             let new_link_id = st.cad_links.iter().map(|l| l.id).max().unwrap_or(0) + 1;
 
+            // Определяем стороны на основе положения деревьев
             let side1 = if src_tree_x < tgt_tree_x { 0 } else { 1 };
             let side2 = if tgt_tree_x < src_tree_x { 0 } else { 1 };
 
+            // Получаем ширину узлов + 20 пикселей
             let node1_width = st
                 .trees
                 .iter()
@@ -991,17 +808,21 @@ fn main() {
                 .map(|i| i.text.chars().count() as f32 * 7.2 + 20.0 + 20.0)
                 .unwrap_or(60.0);
 
+            // Вычисляем координаты с учетом ширины узла и стороны
+            // self_triangle_x - это левый край узла
             let x1_final = if side1 == 0 {
-                source_x + src_tree_x + node1_width
+                source_x + src_tree_x + node1_width // справа от узла
             } else {
-                source_x + src_tree_x
+                source_x + src_tree_x // слева от узла
             };
             let x2_final = if side2 == 0 {
-                target_x + tgt_tree_x + node2_width
+                target_x + tgt_tree_x + node2_width // справа от узла
             } else {
-                target_x + tgt_tree_x
+                target_x + tgt_tree_x // слева от узла
             };
 
+            // Вертикальная линия связи проходит ровно посередине между
+            // конечными точками левой и правой горизонтальных линий
             let mid_x = (x1_final + x2_final) / 2.0;
 
             st.cad_links.push(CADLink {
@@ -1026,7 +847,6 @@ fn main() {
                 .and_then(|t| t.items.iter().find(|i| i.id == source_node_id))
                 .map(|i| i.text.clone())
                 .unwrap_or_default();
-
             let target_text = st
                 .trees
                 .iter()
@@ -1044,7 +864,6 @@ fn main() {
                     });
                 }
             }
-
             if let Some(tree) = st.trees.iter_mut().find(|t| t.id == target_tree_id) {
                 if let Some(item) = tree.items.iter_mut().find(|i| i.id == target_node_id) {
                     item.links.push(RawLink {
@@ -1066,9 +885,9 @@ fn main() {
         },
     );
     let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_delete_link(move |link_id| {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
 
         st.cad_links.retain(|l| l.id != link_id);
@@ -1081,95 +900,9 @@ fn main() {
         update_ui_models(&ui, &st);
     });
     let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_delete_selected_link(move || {
-        let ui = _a_w.unwrap();
-        let mut st = _s.borrow_mut();
-
-        let selected_id = ui.get_selected_link_id();
-        if selected_id != -1 {
-            st.cad_links.retain(|l| l.id != selected_id);
-            for t in st.trees.iter_mut() {
-                for it in t.items.iter_mut() {
-                    it.links.retain(|l| l.id != selected_id);
-                }
-            }
-            ui.set_selected_link_id(-1);
-            update_ui_models(&ui, &st);
-        }
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_delete_link_from_properties(move |property_link_index| {
-        let ui = _a_w.unwrap();
-        let mut st = _s.borrow_mut();
-
-        let links = build_node_links(&st, st.active_focus_tree_id, st.selected_node_id);
-
-        if property_link_index >= 0 && (property_link_index as usize) < links.len() {
-            let link_info = &links[property_link_index as usize];
-            let link_id = link_info.id;
-
-            st.cad_links.retain(|l| l.id != link_id);
-            for t in st.trees.iter_mut() {
-                for it in t.items.iter_mut() {
-                    it.links.retain(|l| l.id != link_id);
-                }
-            }
-
-            update_ui_models(&ui, &st);
-            ui.set_selected_property_link_index(-1);
-        }
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_add_note_to_properties(move |node_id, note_text| {
-        let ui = _a_w.unwrap();
-        let mut st = _s.borrow_mut();
-
-        let tree_id = st.active_focus_tree_id;
-        if let Some(tree) = st.trees.iter_mut().find(|t| t.id == tree_id) {
-            if let Some(item) = tree.items.iter_mut().find(|i| i.id == node_id) {
-                let trimmed = note_text.trim();
-                if !trimmed.is_empty() {
-                    item.notes.push(trimmed.to_string());
-                    update_ui_models(&ui, &st);
-                    ui.set_properties_text("".into());
-                    ui.set_selected_property_note_index(-1);
-                }
-            }
-        }
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_save_note_from_properties(move |_node_id, _note_index, _note_text| {
-        // Этот обработчик больше не нужен, но оставляем для совместимости
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
-    app.on_delete_note_from_properties(move |property_note_index| {
-        let ui = _a_w.unwrap();
-        let mut st = _s.borrow_mut();
-
-        let tree_id = st.active_focus_tree_id;
-        let node_id = st.selected_node_id;
-
-        if let Some(tree) = st.trees.iter_mut().find(|t| t.id == tree_id) {
-            if let Some(item) = tree.items.iter_mut().find(|i| i.id == node_id) {
-                if property_note_index >= 0 && (property_note_index as usize) < item.notes.len() {
-                    item.notes.remove(property_note_index as usize);
-                    update_ui_models(&ui, &st);
-                    ui.set_selected_property_note_index(-1);
-                    ui.set_properties_text("".into());
-                    ui.set_note_editing(false);
-                }
-            }
-        }
-    });
-    let _s = state.clone();
-    let _a_w = app_weak.clone();
+    let a_w = app_weak.clone();
     app.on_key_esc_pressed(move || {
-        let ui = _a_w.unwrap();
+        let ui = a_w.unwrap();
         let mut st = _s.borrow_mut();
 
         st.linking_mode = false;

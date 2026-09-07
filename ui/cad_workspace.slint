@@ -1,0 +1,43 @@
+import { CADLine, SlintCADTree } from "cad_types.slint";
+import { CADLinkLine } from "cad_link_line.slint";
+import { CADTreeBlock } from "cad_tree_block.slint";
+
+export component CADWorkspace inherits Rectangle {
+    in property <[SlintCADTree]> trees;
+    in property <[CADLine]> links;
+    in property <float> scale_factor: 1.0;
+    in property <length> offset_x: 0px;
+    in property <length> offset_y: 0px;
+    in property <int> selected_link_id: -1;
+    in property <int> selected_node_id: -1;
+    in property <bool> linking_mode: false;
+    in property <int> linking_source_node_id: -1;
+    in property <int> linking_source_tree_id: -1;
+    out property <int> last_selected_link_id: selected_link_id;
+    callback select_link(int);
+    callback open_link_menu(int, float, float);
+    callback select_item(int, string, int);
+    callback toggle_expand(int, int);
+    callback start_drag(int);
+
+    width: 100%;
+    height: 100%;
+    for link in root.links : CADLinkLine {
+        line: link;
+        scale_factor: root.scale_factor;
+        selected_link_id: root.selected_link_id;
+        clicked(id) => { root.select_link(id); }
+        context_menu(id, x, y) => { root.open_link_menu(id, x, y); }
+    }
+    for tree in root.trees : CADTreeBlock {
+        tree: tree;
+        scale_factor: root.scale_factor;
+        linking_mode: root.linking_mode;
+        selected_node_id: root.selected_node_id;
+        linking_source_node_id: root.linking_source_node_id;
+        linking_source_tree_id: root.linking_source_tree_id;
+        select_item(id, text, tree_id) => { root.select_item(id, text, tree_id); }
+        toggle_expand(id, tree_id) => { root.toggle_expand(id, tree_id); }
+        start_drag(id) => { root.start_drag(id); }
+    }
+}
