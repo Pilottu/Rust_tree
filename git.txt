@@ -1,0 +1,8 @@
+https://github.com/Pilottu/Rust_tree/blob/main/clod/app___V26.txt
+https://github.com/Pilottu/Rust_tree/blob/main/clod/main__V26.txt
+https://github.com/Pilottu/Rust_tree/blob/main/src/main.rs
+https://github.com/Pilottu/Rust_tree/blob/main/ui/app.slint
+https://github.com/Pilottu/Rust_tree/blob/main/ui/cad_link_line.slint
+https://github.com/Pilottu/Rust_tree/blob/main/ui/cad_tree_block.slint
+https://github.com/Pilottu/Rust_tree/blob/main/ui/cad_types.slint
+https://github.com/Pilottu/Rust_tree/blob/main/ui/cad_workspace.slint
