@@ -1,524 +1,188 @@
-error: failed to run custom build command for `my_slint_app v0.1.0 (G:\Prog\Rust\Rust_tree)`                                                 
-
-Caused by:
-  process didn't exit successfully: `G:\Prog\Rust\Rust_tree\target\debug\build\my_slint_app-70e17af175845eec\build-script-build` (exit code: 101)
-  --- stderr
-  error: Cannot find requested import "cad_types.slint" in the include search path
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:2:79
-       |
-     2 | import { CADLine, MyTreeItem, NodeLinkInfo, NodeNoteInfo, SlintCADTree } from "cad_types.slint";
-       |                                                                               ^^^^^^^^^^^^^^^^^
-       |
-  error: Cannot find requested import "cad_workspace.slint" in the include search path
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:3:30
-       |
-     3 | import { CADWorkspace } from "cad_workspace.slint";
-       |                              ^^^^^^^^^^^^^^^^^^^^^
-  error: Cannot find requested import "cad_link_line.slint" in the include search path
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:4:29
-       |
-     4 | import { CADLinkLine } from "cad_link_line.slint";
-       |                             ^^^^^^^^^^^^^^^^^^^^^
-  error: Cannot find requested import "cad_tree_block.slint" in the include search path
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:5:30
-       |
-     5 | import { CADTreeBlock } from "cad_tree_block.slint";
-       |                              ^^^^^^^^^^^^^^^^^^^^^^
-  error: Unknown type 'SlintCADTree'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:11:23
-       |
-    11 |     in_out property <[SlintCADTree]> trees_list: [];
-       |                       ^^^^^^^^^^^^
-  error: Unknown type 'CADLine'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:12:23
-       |
-    12 |     in_out property <[CADLine]> active_cad_links: [];
-       |                       ^^^^^^^
-  error: Unknown type 'NodeLinkInfo'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:22:23
-       |
-    22 |     in_out property <[NodeLinkInfo]> properties_links: [];
-       |                       ^^^^^^^^^^^^
-  error: Unknown type 'NodeNoteInfo'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:23:23
-       |
-    23 |     in_out property <[NodeNoteInfo]> properties_notes: [];
-       |                       ^^^^^^^^^^^^
-  error: Unknown element 'CADLinkLine'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:265:45
-       |
-   265 |         for line in root.active_cad_links : CADLinkLine {
-       |                                             ^^^^^^^^^^^^
-  error: Unknown element 'CADTreeBlock'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:503:43
-       |
-   503 |             for tree in root.trees_list : CADTreeBlock {
-       |                                           ^^^^^^^^^^^^^
-  error: Unknown type 'SlintCADTree'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:1094:18
-       |
-  1094 |     in property <SlintCADTree> tree;
-       |                  ^^^^^^^^^^^^
-  error: Unknown element 'CADTreeBlock'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:1119:5
-       |
-  1119 |     CADTreeBlock {
-       |     ^^^^^^^^^^^^^
-  error: Unknown type 'CADLine'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:1134:18
-       |
-  1134 |     in property <CADLine> line;
-       |                  ^^^^^^^
-  error: Unknown element 'CADLinkLine'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:1165:9
-       |
-  1165 |         CADLinkLine {
-       |         ^^^^^^^^^^^^
-  error: Cannot convert [<error>] to model
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:265:21
-       |
-   265 |         for line in root.active_cad_links : CADLinkLine {
-       |                     ^^^^^^^^^^^^^^^^^^^^^^
-  error: Cannot convert [<error>] to model
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:287:21
-       |
-   287 |         for tree in root.trees_list : Rectangle {
-       |                     ^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'count' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:291:27
-       |
-   291 |             height: (tree.count * 32 + 36) * 1px * root.scale_factor;
-       |                           ^^^^^
-  error: Cannot access the field 'width' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:290:25
-       |
-   290 |             width: tree.width * 1px * root.scale_factor;
-       |                         ^^^^^
-  error: Cannot access the field 'cad_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:288:21
-       |
-   288 |             x: tree.cad_x * 1px * root.scale_factor;
-       |                     ^^^^^
-  error: Cannot access the field 'cad_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:289:21
-       |
-   289 |             y: tree.cad_y * 1px * root.scale_factor;
-       |                     ^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:308:61
-       |
-   308 |                         root.active_dragging_tree_id = tree.id;
-       |                                                             ^^
-  error: Cannot access the field 'data' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:327:46
-       |
-   327 |                 for item[item-index] in tree.data : Rectangle {
-       |                                              ^^^^
-  error: Cannot access the field 'depth' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:328:30
-       |
-   328 |                     if (item.depth > 0) : Rectangle {
-       |                              ^^^^^
-  error: Cannot access the field 'self_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:337:43
-       |
-   337 | ...                   height: (item.self_triangle_y - item.parent_triangle_y - 13.0 + 5.0) * 1px * root.scale_factor;
-       |                                     ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'parent_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:337:66
-       |
-   337 | ...                   height: (item.self_triangle_y - item.parent_triangle_y - 13.0 + 5.0) * 1px * root.scale_factor;
-       |                                                            ^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'parent_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:334:38
-       |
-   334 | ...                   x: (item.parent_triangle_x - 8.0 + 10.0) * 1px * root.scale_factor;
-       |                                ^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'parent_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:335:38
-       |
-   335 | ...                   y: (item.parent_triangle_y - 8.0 + 5.0) * 1px * root.scale_factor;
-       |                                ^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'self_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:343:42
-       |
-   343 | ...                   width: (item.self_triangle_x - item.parent_triangle_x - 18.0) * 1px * root.scale_factor;
-       |                                    ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'parent_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:343:65
-       |
-   343 | ...                   width: (item.self_triangle_x - item.parent_triangle_x - 18.0) * 1px * root.scale_factor;
-       |                                                           ^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'parent_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:341:38
-       |
-   341 | ...                   x: (item.parent_triangle_x - 8.0 + 18.0 + 10.0) * 1px * root.scale_factor;
-       |                                ^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'self_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:342:38
-       |
-   342 | ...                   y: (item.self_triangle_y - 8.0 + 5.0) * 1px * root.scale_factor;
-       |                                ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'parent_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:348:38
-       |
-   348 | ...                   x: (item.parent_triangle_x - 8.0 + 10.0) * 1px * root.scale_factor;
-       |                                ^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'self_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:349:38
-       |
-   349 | ...                   y: (item.self_triangle_y - 8.0 - 14.0 + 5.0) * 1px * root.scale_factor;
-       |                                ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'data' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:372:46
-       |
-   372 |                 for item[item-index] in tree.data : Rectangle {
-       |                                              ^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:377:87
-       |
-   377 | ...   property <bool> is_link_endpoint: root.is_linking_mode && (((item.id == root.linking_source_node_id) && (tree.id == root.lin...
-       |                                                                         ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:377:131
-       |
-   377 | ...   property <bool> is_link_endpoint: root.is_linking_mode && (((item.id == root.linking_source_node_id) && (tree.id == root.lin...
-       |                                                                                                                     ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:377:206
-       |
-   377 | ...nking_source_tree_id)) || (root.link_confirm_visible && (item.id == root.linking_target_node_id) && (tree.id == root.linking_ta...
-       |                                                                  ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:377:250
-       |
-   377 | ..._visible && (item.id == root.linking_target_node_id) && (tree.id == root.linking_target_tree_id)));
-       |                                                                  ^^
-  error: Cannot access the field 'has_children' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:380:30
-       |
-   380 |                     if (item.has_children) : TouchArea {
-       |                              ^^^^^^^^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:387:53
-       |
-   387 | ...                   root.toggle_expand(item.id, tree.id);
-       |                                               ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:387:62
-       |
-   387 | ...                   root.toggle_expand(item.id, tree.id);
-       |                                                        ^^
-  error: Cannot access the field 'depth' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:381:41
-       |
-   381 |                         x: (20px + item.depth * 24px + 10px) * root.scale_factor;
-       |                                         ^^^^^
-  error: Cannot access the field 'is_expanded' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:393:40
-       |
-   393 | ...                   text: item.is_expanded ? "▼ " : "▶ ";
-       |                                  ^^^^^^^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:409:42
-       |
-   409 | ...                   if (item.id == root.linking_source_node_id && tree.id == root.linking_source_tree_id) {
-       |                                ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:409:84
-       |
-   409 | ...                   if (item.id == root.linking_source_node_id && tree.id == root.linking_source_tree_id) {
-       |                                                                          ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:411:121
-       |
-   411 | ...   root.finish_cad_link(root.linking_source_node_id, root.linking_source_tree_id, item.id, tree.id, root.linking_source_x, root...
-       |                                                                                           ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:411:130
-       |
-   411 | ...   root.finish_cad_link(root.linking_source_node_id, root.linking_source_tree_id, item.id, tree.id, root.linking_source_x, root...
-       |                                                                                                    ^^
-  error: Cannot access the field 'self_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:411:185
-       |
-   411 | ....id, root.linking_source_x, root.linking_source_y, item.self_triangle_x, item.self_triangle_y, root.linking_source_tree_x, root...
-       |                                                            ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'self_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:411:207
-       |
-   411 | ...ce_x, root.linking_source_y, item.self_triangle_x, item.self_triangle_y, root.linking_source_tree_x, root.linking_source_tree_y...
-       |                                                            ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'cad_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:411:285
-       |
-   411 | ...root.linking_source_tree_x, root.linking_source_tree_y, tree.cad_x, tree.cad_y);
-       |                                                                 ^^^^^
-  error: Cannot access the field 'cad_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:411:297
-       |
-   411 | ..._source_tree_x, root.linking_source_tree_y, tree.cad_x, tree.cad_y);
-       |                                                                 ^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:413:72
-       |
-   413 | ...                   root.linking_target_node_id = item.id;
-       |                                                          ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:414:72
-       |
-   414 | ...                   root.linking_target_tree_id = tree.id;
-       |                                                          ^^
-  error: Cannot access the field 'self_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:415:66
-       |
-   415 | ...                   root.linking_target_x = item.self_triangle_x;
-       |                                                    ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'self_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:416:66
-       |
-   416 | ...                   root.linking_target_y = item.self_triangle_y;
-       |                                                    ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'cad_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:417:71
-       |
-   417 | ...                   root.linking_target_tree_x = tree.cad_x;
-       |                                                         ^^^^^
-  error: Cannot access the field 'cad_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:418:71
-       |
-   418 | ...                   root.linking_target_tree_y = tree.cad_y;
-       |                                                         ^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:422:122
-       |
-   422 | ...                   if (animation-tick() - root.last_click_time < 350ms && root.last_clicked_item_id == item.id) {
-       |                                                                                                                ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:423:67
-       |
-   423 | ...                   root.item_double_clicked(item.id, tree.id);
-       |                                                     ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:423:76
-       |
-   423 | ...                   root.item_double_clicked(item.id, tree.id);
-       |                                                              ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:425:59
-       |
-   425 | ...                   root.select_item(item.id, item.text, tree.id);
-       |                                             ^^
-  error: Cannot access the field 'text' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:425:68
-       |
-   425 | ...                   root.select_item(item.id, item.text, tree.id);
-       |                                                      ^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:425:79
-       |
-   425 | ...                   root.select_item(item.id, item.text, tree.id);
-       |                                                                 ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:430:62
-       |
-   430 | ...                   root.last_clicked_item_id = item.id;
-       |                                                        ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:435:55
-       |
-   435 | ...                   root.select_item(item.id, item.text, tree.id);
-       |                                             ^^
-  error: Cannot access the field 'text' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:435:64
-       |
-   435 | ...                   root.select_item(item.id, item.text, tree.id);
-       |                                                      ^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:435:75
-       |
-   435 | ...                   root.select_item(item.id, item.text, tree.id);
-       |                                                                 ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:438:60
-       |
-   438 | ...                   root.menu_target_id = item.id;
-       |                                                  ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:439:62
-       |
-   439 | ...                   root.menu_source_tree = tree.id;
-       |                                                    ^^
-  error: Cannot access the field 'cad_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:440:97
-       |
-   440 | ...                   root.menu_x = ((self.mouse-x / 1px) / root.scale_factor) + tree.cad_x;
-       |                                                                                       ^^^^^
-  error: Cannot access the field 'cad_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:441:97
-       |
-   441 | ...                   root.menu_y = ((self.mouse-y / 1px) / root.scale_factor) + tree.cad_y;
-       |                                                                                       ^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:445:64
-       |
-   445 | ...                   if (root.tooltip_index != item.id) {
-       |                                                      ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:446:63
-       |
-   446 | ...                   root.tooltip_index = item.id;
-       |                                                 ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:447:66
-       |
-   447 | ...                   root.menu_source_tree = tree.id;
-       |                                                    ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:448:58
-       |
-   448 | ...                   root.hover_item(item.id, item-index, tree.id);
-       |                                            ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:448:79
-       |
-   448 | ...                   root.hover_item(item.id, item-index, tree.id);
-       |                                                                 ^^
-  error: Cannot access the field 'self_triangle_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:451:63
-       |
-   451 | ...                   root.active_self_x = item.self_triangle_x;
-       |                                                 ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'self_triangle_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:452:63
-       |
-   452 | ...                   root.active_self_y = item.self_triangle_y;
-       |                                                 ^^^^^^^^^^^^^^^
-  error: Cannot access the field 'cad_x' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:453:67
-       |
-   453 | ...                   root.active_tree_cad_x = tree.cad_x;
-       |                                                     ^^^^^
-  error: Cannot access the field 'cad_y' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:454:67
-       |
-   454 | ...                   root.active_tree_cad_y = tree.cad_y;
-       |                                                     ^^^^^
-  error: Cannot access the field 'is_selected' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:465:125
-       |
-   465 | ...   background: is_link_endpoint ? (root.link_mode_blink_opacity > 0.5 ? #00ff0015 : #ffffff05) : (item.is_selected ? #ffd70015 ...
-       |                                                                                                           ^^^^^^^^^^^
-  error: Cannot access the field 'is_selected' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:463:123
-       |
-   463 | ...   border-color: is_link_endpoint ? (root.link_mode_blink_opacity > 0.5 ? #00ff00 : #ffffff) : (item.is_selected ? #ffd700 : #f...
-       |                                                                                                         ^^^^^^^^^^^
-  error: Cannot access the field 'is_selected' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:462:44
-       |
-   462 |                         border-width: item.is_selected ? 2px * root.scale_factor : 1px * root.scale_factor;
-       |                                            ^^^^^^^^^^^
-  error: Cannot access the field 'is_editing' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:468:37
-       |
-   468 |                         width: item.is_editing ? 160px * root.scale_factor : (t_box1.preferred-width + 20px * root.scale_factor);
-       |                                     ^^^^^^^^^^
-  error: Cannot access the field 'depth' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:461:41
-       |
-   461 |                         x: (24px + item.depth * 24px + 20px + 10px) * root.scale_factor;
-       |                                         ^^^^^
-  error: Cannot access the field 'is_editing' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:472:43
-       |
-   472 | ...                   opacity: item.is_editing ? 0 : 1;
-       |                                     ^^^^^^^^^^
-  error: Cannot access the field 'is_selected' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:475:45
-       |
-   475 | ...                   color: item.is_selected ? #ffffff : #e0e0e0;
-       |                                   ^^^^^^^^^^^
-  error: Cannot access the field 'is_selected' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:477:51
-       |
-   477 | ...                   font-weight: item.is_selected ? 700 : 400;
-       |                                         ^^^^^^^^^^^
-  error: Cannot access the field 'text' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:474:44
-       |
-   474 | ...                   text: item.text;
-       |                                  ^^^^
-  error: Cannot access the field 'is_editing' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:481:34
-       |
-   481 |                         if (item.is_editing) : LineEdit {
-       |                                  ^^^^^^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:487:57
-       |
-   487 | ...                   root.finish_rename(item.id, txt, tree.id);
-       |                                               ^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:487:71
-       |
-   487 | ...                   root.finish_rename(item.id, txt, tree.id);
-       |                                                             ^^
-  error: Cannot access the field 'text' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:482:40
-       |
-   482 | ...                   text: item.text;
-       |                                  ^^^^
-  error: Cannot convert [<error>] to model
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:503:25
-       |
-   503 |             for tree in root.trees_list : CADTreeBlock {
-       |                         ^^^^^^^^^^^^^^^^
-  error: Cannot convert [<error>] to model
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:808:49
-       |
-   808 |                         for note[note-index] in root.properties_notes : Rectangle {
-       |                                                 ^^^^^^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'note_text' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:846:44
-       |
-   846 | ...                   text: note.note_text;
-       |                                  ^^^^^^^^^
-  error: Cannot access the field 'note_text' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:868:48
-       |
-   868 | ...                   text: note.note_text;
-       |                                  ^^^^^^^^^
-  error: Cannot convert [<error>] to model
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:955:49
-       |
-   955 |                         for link[link-index] in root.properties_links : Rectangle {
-       |                                                 ^^^^^^^^^^^^^^^^^^^^^^
-  error: Cannot access the field 'id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:988:63
-       |
-   988 | ...                   text: "Связь ID: " + link.id;
-       |                                                 ^^
-  error: Cannot access the field 'target_node_id' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:993:66
-       |
-   993 | ...                   text: "→ Объект ID: " + link.target_node_id + " (" + link.target_node_name + ")";
-       |                                                    ^^^^^^^^^^^^^^
-  error: Cannot access the field 'target_node_name' of <error>
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:993:95
-       |
-   993 | ...                   text: "→ Объект ID: " + link.target_node_id + " (" + link.target_node_name + ")";
-       |                                                                                 ^^^^^^^^^^^^^^^^
-  error: Element 'Window' does not have a property 'tree'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:1120:20
-       |
-  1120 |         tree: root.tree;
-       |                    ^^^^
-  error: Element 'Window' does not have a property 'line'
-      --> G:\Prog\Rust\Rust_tree\ui\app.slint:1166:24
-       |
-  1166 |             line: root.line;
-       |                        ^^^^
-
-  thread 'main' (10888) panicked at build.rs:3:42:
-  called `Result::unwrap()` on an `Err` value: CompileError(["G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:2: Cannot find requested import \"cad_types.slint\" in the include search path", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:3: Cannot find requested import \"cad_workspace.slint\" in the include search path", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:4: Cannot find requested import \"cad_link_line.slint\" in the include search path", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:5: Cannot find requested import \"cad_tree_block.slint\" in the include search path", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:11: Unknown type 'SlintCADTree'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:12: Unknown type 'CADLine'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:22: Unknown type 'NodeLinkInfo'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:23: Unknown type 'NodeNoteInfo'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:265: Unknown element 'CADLinkLine'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:503: Unknown element 'CADTreeBlock'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:1094: Unknown type 'SlintCADTree'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:1119: Unknown element 'CADTreeBlock'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:1134: Unknown type 'CADLine'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:1165: Unknown element 'CADLinkLine'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:265: Cannot convert [<error>] to model", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:287: Cannot convert [<error>] to model", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:291: Cannot access the field 'count' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:290: Cannot access the field 'width' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:288: Cannot access the field 'cad_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:289: Cannot access the field 'cad_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:308: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:327: Cannot access the field 'data' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:328: Cannot access the field 'depth' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:337: Cannot access the field 'self_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:337: Cannot access the field 'parent_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:334: Cannot access the field 'parent_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:335: Cannot access the field 'parent_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:343: Cannot access the field 'self_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:343: Cannot access the field 'parent_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:341: Cannot access the field 'parent_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:342: Cannot access the field 'self_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:348: Cannot access the field 'parent_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:349: Cannot access the field 'self_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:372: Cannot access the field 'data' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:377: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:377: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:377: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:377: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:380: Cannot access the field 'has_children' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:387: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:387: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:381: Cannot access the field 'depth' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:393: Cannot access the field 'is_expanded' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:409: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:409: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:411: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:411: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:411: Cannot access the field 'self_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:411: Cannot access the field 'self_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:411: Cannot access the field 'cad_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:411: Cannot access the field 'cad_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:413: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:414: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:415: Cannot access the field 'self_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:416: Cannot access the field 'self_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:417: Cannot access the field 'cad_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:418: Cannot access the field 'cad_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:422: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:423: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:423: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:425: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:425: Cannot access the field 'text' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:425: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:430: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:435: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:435: Cannot access the field 'text' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:435: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:438: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:439: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:440: Cannot access the field 'cad_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:441: Cannot access the field 'cad_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:445: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:446: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:447: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:448: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:448: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:451: Cannot access the field 'self_triangle_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:452: Cannot access the field 'self_triangle_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:453: Cannot access the field 'cad_x' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:454: Cannot access the field 'cad_y' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:465: Cannot access the field 'is_selected' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:463: Cannot access the field 'is_selected' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:462: Cannot access the field 'is_selected' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:468: Cannot access the field 'is_editing' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:461: Cannot access the field 'depth' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:472: Cannot access the field 'is_editing' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:475: Cannot access the field 'is_selected' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:477: Cannot access the field 'is_selected' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:474: Cannot access the field 'text' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:481: Cannot access the field 'is_editing' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:487: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:487: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:482: Cannot access the field 'text' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:503: Cannot convert [<error>] to model", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:808: Cannot convert [<error>] to model", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:846: Cannot access the field 'note_text' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:868: Cannot access the field 'note_text' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:955: Cannot convert [<error>] to model", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:988: Cannot access the field 'id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:993: Cannot access the field 'target_node_id' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:993: Cannot access the field 'target_node_name' of <error>", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:1120: Element 'Window' does not have a property 'tree'", "G:\\Prog\\Rust\\Rust_tree\\ui\\app.slint:1166: Element 'Window' does not have a property 'line'"])
+[{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "Unknown property linking-source-x in CADWorkspace",
+	"startLineNumber": 272,
+	"startColumn": 13,
+	"endLineNumber": 272,
+	"endColumn": 29,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "Unknown property linking-source-y in CADWorkspace",
+	"startLineNumber": 273,
+	"startColumn": 13,
+	"endLineNumber": 273,
+	"endColumn": 29,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "Unknown property linking-source-tree-x in CADWorkspace",
+	"startLineNumber": 274,
+	"startColumn": 13,
+	"endLineNumber": 274,
+	"endColumn": 34,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "Unknown property linking-source-tree-y in CADWorkspace",
+	"startLineNumber": 275,
+	"startColumn": 13,
+	"endLineNumber": 275,
+	"endColumn": 34,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "Unknown property linking-target-node-id in CADWorkspace",
+	"startLineNumber": 276,
+	"startColumn": 13,
+	"endLineNumber": 276,
+	"endColumn": 35,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "Unknown property linking-target-tree-id in CADWorkspace",
+	"startLineNumber": 277,
+	"startColumn": 13,
+	"endLineNumber": 277,
+	"endColumn": 35,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "Unknown property link-confirm-visible in CADWorkspace",
+	"startLineNumber": 278,
+	"startColumn": 13,
+	"endLineNumber": 278,
+	"endColumn": 33,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'link-clicked' is not a callback in CADWorkspace",
+	"startLineNumber": 279,
+	"startColumn": 13,
+	"endLineNumber": 279,
+	"endColumn": 25,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'link-context-menu' is not a callback in CADWorkspace",
+	"startLineNumber": 280,
+	"startColumn": 13,
+	"endLineNumber": 280,
+	"endColumn": 30,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'start-drag' only has 1 arguments, but 3 were provided",
+	"startLineNumber": 292,
+	"startColumn": 13,
+	"endLineNumber": 292,
+	"endColumn": 23,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'show-menu' is not a callback in CADWorkspace",
+	"startLineNumber": 297,
+	"startColumn": 13,
+	"endLineNumber": 297,
+	"endColumn": 22,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'item-double-clicked' is not a callback in CADWorkspace",
+	"startLineNumber": 298,
+	"startColumn": 13,
+	"endLineNumber": 298,
+	"endColumn": 32,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'finish-rename' is not a callback in CADWorkspace",
+	"startLineNumber": 299,
+	"startColumn": 13,
+	"endLineNumber": 299,
+	"endColumn": 26,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'hover-item' is not a callback in CADWorkspace",
+	"startLineNumber": 300,
+	"startColumn": 13,
+	"endLineNumber": 300,
+	"endColumn": 23,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'select-link-target' is not a callback in CADWorkspace",
+	"startLineNumber": 301,
+	"startColumn": 13,
+	"endLineNumber": 301,
+	"endColumn": 31,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'finish-link' is not a callback in CADWorkspace",
+	"startLineNumber": 302,
+	"startColumn": 13,
+	"endLineNumber": 302,
+	"endColumn": 24,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+},{
+	"resource": "/g:/Prog/Rust/Rust_tree/ui/app.slint",
+	"owner": "_generated_diagnostic_collection_name_#0",
+	"severity": 8,
+	"message": "'pan' is not a callback in CADWorkspace",
+	"startLineNumber": 305,
+	"startColumn": 13,
+	"endLineNumber": 305,
+	"endColumn": 16,
+	"modelVersionId": 3,
+	"origin": "extHost1"
+}]
