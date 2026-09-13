@@ -372,7 +372,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                 let json: String = txt.chars().skip(17).collect();
                 if let Ok(mut tree) = serde_json::from_str::<CADTree>(&json) {
                     let mut st = _s.borrow_mut();
-                    st.history.push(st.trees.clone());
+                    let trees_snapshot = st.trees.clone();
+                    st.history.push(trees_snapshot);
 
                     let next_id = st.trees.iter().map(|t| t.id).max().unwrap_or(0) + 1;
                     let mut next_node_id = st
