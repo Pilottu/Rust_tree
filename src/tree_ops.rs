@@ -196,6 +196,15 @@ pub fn find_visible_node<'a>(
     }
 }
 
+// Визуальные допуски для точки, где линия связи касается узла — подберите
+// на глаз под текущий стиль отрисовки. OVAL_BORDER_ADJUST — когда узел
+// "дальняя" сторона (линия тянется к внешнему краю овала с текстом).
+// TRIANGLE_ADJUST — когда узел "ближняя" сторона (линия идёт к треугольнику
+// разворачивания слева от текста). Именно в эту логику раньше закрадывалась
+// асимметрия: допуск был привязан к сегменту линии, а не к роли (side).
+const OVAL_BORDER_ADJUST: f32 = 3.0;
+const TRIANGLE_ADJUST: f32 = -5.0;
+
 pub fn update_ui_models(app: &AppWindow, state: &AppState) {
     save_persisted_state(state);
     let mut slint_trees = Vec::new();
@@ -253,10 +262,17 @@ pub fn update_ui_models(app: &AppWindow, state: &AppState) {
                     if let Some(item) = find_visible_node(&t1.items, views, link.id_obj1) {
                         let node_width = item.text_width + 20.0;
                         let x1_base = t1.cad_x + item.self_triangle_x + 12.0;
+                        // side == 0 — узел "дальняя" сторона связи, линия идёт к
+                        // внешнему краю овала с текстом (OVAL_BORDER_ADJUST).
+                        // side == 1 — узел "ближняя" сторона, линия идёт к
+                        // треугольнику разворачивания (TRIANGLE_ADJUST).
+                        // Допуск привязан к side, а не к тому, узел это 1 или 2 —
+                        // иначе при перетаскивании, когда стороны меняются
+                        // местами, допуск остаётся приклеен не к тому краю.
                         x1 = if side1 == 0 {
-                            x1_base + node_width
+                            x1_base + node_width + OVAL_BORDER_ADJUST
                         } else {
-                            x1_base
+                            x1_base + TRIANGLE_ADJUST
                         };
                         y1 = t1.cad_y + item.self_triangle_y + 10.0;
                     }
@@ -267,9 +283,9 @@ pub fn update_ui_models(app: &AppWindow, state: &AppState) {
                         let node_width = item.text_width + 20.0;
                         let x2_base = t2.cad_x + item.self_triangle_x + 14.0;
                         x2 = if side2 == 0 {
-                            x2_base + node_width
+                            x2_base + node_width + OVAL_BORDER_ADJUST
                         } else {
-                            x2_base
+                            x2_base + TRIANGLE_ADJUST
                         };
                         y2 = t2.cad_y + item.self_triangle_y + 10.0;
                     }

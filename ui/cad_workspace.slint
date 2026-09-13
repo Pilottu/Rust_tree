@@ -32,8 +32,7 @@ export component CADWorkspace inherits Rectangle {
     callback toggle_expand(int, int);
     callback start_drag(int, float, float);
     callback show_menu(int, int, float, float);
-    callback item_double_clicked(int, int);
-    callback finish_rename(int, string, int);
+        callback finish_rename(int, string, int);
     // id, index, tree_id, self_x, self_y, tree_cad_x, tree_cad_y — координаты нужны
     // app.slint, чтобы правильно позиционировать всплывающую подсказку.
     callback hover_item(int, int, int, float, float, float, float);
@@ -77,8 +76,7 @@ export component CADWorkspace inherits Rectangle {
         toggle_expand(id, tree_id) => { root.toggle_expand(id, tree_id); }
         start_drag(id, anchor_x, anchor_y) => { root.start_drag(id, anchor_x, anchor_y); }
         show_menu(id, tree_id, menu_x, menu_y) => { root.show_menu(id, tree_id, menu_x, menu_y); }
-        item_double_clicked(id, tree_id) => { root.item_double_clicked(id, tree_id); }
-        finish_rename(id, value, tree_id) => { root.finish_rename(id, value, tree_id); }
+                finish_rename(id, value, tree_id) => { root.finish_rename(id, value, tree_id); }
         hover_item(id, index, tree_id, self_x, self_y, tree_cad_x, tree_cad_y) => { root.hover_item(id, index, tree_id, self_x, self_y, tree_cad_x, tree_cad_y); }
         select_link_target(id, tree_id, node_x, node_y, tree_x, tree_y) => { root.select_link_target(id, tree_id, node_x, node_y, tree_x, tree_y); }
         finish_link(source_id, source_tree_id, target_id, target_tree_id, source_x, source_y, target_x, target_y, source_tree_x, source_tree_y, target_tree_x, target_tree_y) => {

@@ -29,9 +29,9 @@ export component CADLinkLine inherits Rectangle {
 
     // горизонтальная левая связующая линия
     Rectangle {
-        x: Math.min(x1_scaled, mid_x_scaled) * 1px - 3px;
+        x: Math.min(x1_scaled, mid_x_scaled) * 1px;
         y: y1_scaled * 1px - thickness / 2 + 1px;
-        width: Math.abs(mid_x_scaled - x1_scaled) * 1px + 3px;
+        width: Math.abs(mid_x_scaled - x1_scaled) * 1px;
         height: thickness;
         background: stroke;
 
@@ -73,7 +73,7 @@ export component CADLinkLine inherits Rectangle {
     Rectangle {
         x: Math.min(mid_x_scaled, x2_scaled) * 1px;
         y: y2_scaled * 1px - thickness / 2;
-        width: Math.abs(x2_scaled - mid_x_scaled) * 1px - 5px;
+        width: Math.abs(x2_scaled - mid_x_scaled) * 1px;
         height: thickness;
         background: stroke;
 

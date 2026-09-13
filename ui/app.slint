@@ -293,7 +293,15 @@ export component AppWindow inherits Window {
                 root.link_menu_y = (screen_y - root.bg_offset_y / 1px) / root.scale_factor;
                 root.link_menu_visible = true;
             }
-            select_item(id, text, tree_id) => { root.select_item(id, text, tree_id); }
+            select_item(id, text, tree_id) => {
+                if (animation-tick() - root.last_click_time < 350ms && root.last_clicked_item_id == id) {
+                    root.item_double_clicked(id, tree_id);
+                } else {
+                    root.select_item(id, text, tree_id);
+                }
+                root.last_click_time = animation-tick();
+                root.last_clicked_item_id = id;
+            }
             toggle_expand(id, tree_id) => { root.toggle_expand(id, tree_id); }
             start_drag(id, anchor_x, anchor_y) => {
                 root.tree_drag_anchor_x = anchor_x;
@@ -301,7 +309,6 @@ export component AppWindow inherits Window {
                 root.active_dragging_tree_id = id;
             }
             show_menu(id, tree_id, menu_x, menu_y) => { root.show_tree_menu(id, tree_id, menu_x, menu_y); }
-            item_double_clicked(id, tree_id) => { root.item_double_clicked(id, tree_id); }
             finish_rename(id, value, tree_id) => { root.finish_rename(id, value, tree_id); }
             hover_item(id, index, tree_id, self_x, self_y, tree_cad_x, tree_cad_y) => {
                 if (root.tooltip_index != id) {
