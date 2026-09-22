@@ -72,6 +72,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
         let target_x = target_center_x - 125.0;
         let target_y = target_center_y - 24.0;
         let (fx, fy) = find_closest_free_pos(n_id, target_x, target_y, 250.0, 48.0, &st.trees);
+        let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+        st.history.push(history_snapshot);
         st.trees.push(CADTree {
             id: n_id,
             cad_x: fx,
@@ -297,6 +299,17 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
     app.on_finish_rename(move |node_id, txt, tree_id| {
         let ui = _a_w.unwrap();
         let mut st = _s.borrow_mut();
+        let changed = st
+            .trees
+            .iter()
+            .find(|t| t.id == tree_id)
+            .and_then(|t| t.items.iter().find(|i| i.id == node_id))
+            .map(|i| i.text != txt.as_str())
+            .unwrap_or(false);
+        if changed {
+            let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+            st.history.push(history_snapshot);
+        }
         if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
             if let Some(i) = t.items.iter_mut().find(|i| i.id == node_id) {
                 i.text = txt.to_string();
@@ -334,6 +347,10 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
         // удалены, чтобы после (уже вне заимствования конкретного дерева
         // через t) почистить связи, которые на них ссылались.
         let mut removed_ids: Vec<i32> = Vec::new();
+        if act == "add" || act == "delete" {
+            let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+            st.history.push(history_snapshot);
+        }
         if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
             match act.as_str() {
                 "add" => {
@@ -406,8 +423,9 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
     let _a_w = app_weak.clone();
     app.on_undo_action(move || {
         let mut st = _s.borrow_mut();
-        if let Some(p) = st.history.pop() {
-            st.trees = p;
+        if let Some((trees, links)) = st.history.pop() {
+            st.trees = trees;
+            st.cad_links = links;
         }
         update_ui_models(&_a_w.unwrap(), &st);
     });
@@ -477,8 +495,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                 let json: String = txt.chars().skip(17).collect();
                 if let Ok(trees) = serde_json::from_str::<Vec<CADTree>>(&json) {
                     let mut st = _s.borrow_mut();
-                    let trees_snapshot = st.trees.clone();
-                    st.history.push(trees_snapshot);
+                    let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+                    st.history.push(history_snapshot);
 
                     let mut last_new_id = -1;
                     for (offset_index, mut tree) in trees.into_iter().enumerate() {
@@ -527,8 +545,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                 let json: String = txt.chars().skip(19).collect();
                 if let Ok(branches) = serde_json::from_str::<Vec<ClipboardBranch>>(&json) {
                     let mut st = _s.borrow_mut();
-                    let trees_snapshot = st.trees.clone();
-                    st.history.push(trees_snapshot);
+                    let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+                    st.history.push(history_snapshot);
 
                     let tree_id = st.active_focus_tree_id;
                     let sel = st.selected_node_id;
@@ -549,8 +567,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                 let json: String = txt.chars().skip(16).collect();
                 if let Ok(mut tree) = serde_json::from_str::<CADTree>(&json) {
                     let mut st = _s.borrow_mut();
-                    let trees_snapshot = st.trees.clone();
-                    st.history.push(trees_snapshot);
+                    let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+                    st.history.push(history_snapshot);
 
                     let next_id = st.trees.iter().map(|t| t.id).max().unwrap_or(0) + 1;
                     let mut next_node_id = st
@@ -596,7 +614,7 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                 return;
             }
 
-            let (tree_id, sel, is_edit, old) = {
+            let (tree_id, sel, is_edit, old_trees, old_links) = {
                 let st = _s.borrow();
                 (
                     st.active_focus_tree_id,
@@ -608,6 +626,7 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                         .map(|i| i.is_editing)
                         .unwrap_or(false),
                     st.trees.clone(),
+                    st.cad_links.clone(),
                 )
             };
             let mut st = _s.borrow_mut();
@@ -618,7 +637,7 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                     }
                 }
             } else if txt.starts_with("TREE_BRANCH_DATA:") {
-                st.history.push(old);
+                st.history.push((old_trees, old_links));
                 let json = txt.chars().skip(17).collect::<String>();
                 if let Ok(br) = serde_json::from_str::<ClipboardBranch>(&json) {
                     if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
@@ -694,6 +713,9 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
                 update_ui_models(&ui, &st);
                 return;
             }
+
+            let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+            st.history.push(history_snapshot);
 
             let new_link_id = st.cad_links.iter().map(|l| l.id).max().unwrap_or(0) + 1;
 
@@ -796,6 +818,9 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
         let ui = _a_w.unwrap();
         let mut st = _s.borrow_mut();
 
+        let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+        st.history.push(history_snapshot);
+
         st.cad_links.retain(|l| l.id != link_id);
         for t in st.trees.iter_mut() {
             for it in t.items.iter_mut() {
@@ -813,6 +838,9 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
     app.on_delete_tree(move |tree_id| {
         let ui = _a_w.unwrap();
         let mut st = _s.borrow_mut();
+
+        let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+        st.history.push(history_snapshot);
 
         let removed_link_ids: Vec<i32> = st
             .cad_links
@@ -917,6 +945,9 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
             return;
         }
 
+        let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+        st.history.push(history_snapshot);
+
         let removed_link_ids: Vec<i32> = st
             .cad_links
             .iter()
@@ -976,6 +1007,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
         );
 
         if !st.selected_nodes.is_empty() {
+            let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+            st.history.push(history_snapshot);
             // Узлы могли выбираться Ctrl+кликом в разных деревьях — ищем
             // каждый по всем деревьям, а не только в активном.
             let ids: Vec<i32> = st
@@ -1009,6 +1042,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
         let n_id = st.selected_node_id;
         let tree_id = st.active_focus_tree_id;
         if n_id != -1 && n_id % 1000 != 0 {
+            let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+            st.history.push(history_snapshot);
             if let Some(t) = st.trees.iter_mut().find(|t| t.id == tree_id) {
                 del(n_id, &mut t.items, &mut removed_ids);
             }
@@ -1034,6 +1069,8 @@ pub fn wire_callbacks(app: &AppWindow, state: &Rc<RefCell<AppState>>) {
 
         let selected_id = ui.get_selected_link_id();
         if selected_id != -1 {
+            let history_snapshot = (st.trees.clone(), st.cad_links.clone());
+            st.history.push(history_snapshot);
             st.cad_links.retain(|l| l.id != selected_id);
             for t in st.trees.iter_mut() {
                 for it in t.items.iter_mut() {
